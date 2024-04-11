@@ -13,7 +13,8 @@ import webbrowser
 init(autoreset=True)
 
 ID = ""
-data_folder_path = os.path.join(os.path.expanduser('~'), 'Sniper', 'Datos')
+username = os.getlogin() 
+data_folder_path = f"C:\\Users\\{username}\\Sniper\\Datos"
 os.makedirs(data_folder_path, exist_ok=True)
 cookie_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'Modulos', 'cookie.txt')
 
@@ -36,7 +37,7 @@ def actualizar_modulos_y_script():
 
     url_script = 'https://raw.githubusercontent.com/OneMoreKyra/iniciador/main/iniciador.py'
     r = requests.get(url_script)
-    with open(os.path.realpath(__file__), 'w', encoding='utf-8') as f:
+    with open(os.path.realpath(__file__), 'w') as f:
         f.write(r.text)
 
 def cargar_modulos():
@@ -47,13 +48,13 @@ def cargar_modulos():
     return modulos
 
 def ejecutar_modulo(modulo_seleccionado, ID, boton):
-    print(Fore.GREEN + f"M�dulo {modulo_seleccionado} iniciado como Sniper")
+    print(Fore.GREEN + f"Módulo {modulo_seleccionado} iniciado como Sniper")
     directorio = os.path.dirname(os.path.realpath(__file__))
     ruta_modulo = os.path.join(directorio, 'Modulos', f"{modulo_seleccionado}.py")
     spec = importlib.util.spec_from_file_location("Sniper", ruta_modulo)
     modulo = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(modulo)
-    print(Fore.RED + "La ejecuci�n se realiza en segundo plano y la duraci�n puede ser de algunos segundos dependiendo del usuario y el m�dulo seleccionado")
+    print(Fore.RED + "La ejecución se realiza en segundo plano y la duración puede ser de algunos segundos dependiendo del usuario y el módulo seleccionado")
     modulo.main(ID)
     boton.config(relief="raised")
 
@@ -89,7 +90,7 @@ def main():
     label_cookie = tk.Label(ventana, text="", bg='#000000', fg='#ffffff')
     label_cookie.pack()
 
-    print("Iniciando la carga de m�dulos")
+    print("Iniciando la carga de módulos")
     modulos = cargar_modulos()
     for i, modulo in enumerate(modulos, start=1):
         boton = tk.Button(ventana, text=f"{i}-{modulo}", command=lambda modulo=modulo: ejecutar_modulo(modulo, ID, boton), bg='#808080', fg='#ffffff', activebackground='#A9A9A9')
