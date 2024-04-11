@@ -7,11 +7,37 @@ import tkinter.simpledialog as sd
 from ping3 import ping, verbose_ping
 import time
 import threading
+import zipfile
+import webbrowser
 
 init(autoreset=True)
 
-ID = ""  # Aquí puedes poner el ID del usuario
-cookie_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'Modulos', 'Cookie.txt')
+ID = ""
+data_folder_path = os.path.join(os.path.expanduser('~'), 'Sniper', 'Datos')
+os.makedirs(data_folder_path, exist_ok=True)
+cookie_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'Modulos', 'cookie.txt')
+
+def actualizar_modulos_y_script():
+    directorio = os.path.dirname(os.path.realpath(__file__))
+    ruta_modulos = os.path.join(directorio, 'Modulos')
+    for filename in os.listdir(ruta_modulos):
+        if filename.endswith('.py'):
+            os.remove(os.path.join(ruta_modulos, filename))
+    url_modulos = 'https://github.com/OneMoreKyra/Modulos/archive/refs/heads/main.zip'
+    r = requests.get(url_modulos)
+    with open('Modulos.zip', 'wb') as f:
+        f.write(r.content)
+    with zipfile.ZipFile('Modulos.zip', 'r') as zip_ref:
+        for member in zip_ref.namelist():
+            if member.endswith('.py'):
+                zip_ref.extract(member, ruta_modulos)
+                os.rename(os.path.join(ruta_modulos, member), os.path.join(ruta_modulos, os.path.basename(member)))
+    os.remove('Modulos.zip')
+
+    url_script = 'https://raw.githubusercontent.com/OneMoreKyra/iniciador/main/iniciador.py'
+    r = requests.get(url_script)
+    with open(os.path.realpath(__file__), 'w') as f:
+        f.write(r.text)
 
 def cargar_modulos():
     directorio = os.path.dirname(os.path.realpath(__file__))
@@ -29,7 +55,7 @@ def ejecutar_modulo(modulo_seleccionado, ID, boton):
     spec.loader.exec_module(modulo)
     print(Fore.RED + "La ejecución se realiza en segundo plano y la duración puede ser de algunos segundos dependiendo del usuario y el módulo seleccionado")
     modulo.main(ID)
-    boton.config(relief="raised")  # Restablece el estado del botón después de la ejecución
+    boton.config(relief="raised")
 
 def cambiar_cookie():
     global cookie_path
@@ -86,6 +112,9 @@ def main():
     boton_cerrar = tk.Button(ventana, text="Cerrar", command=lambda: os._exit(0), bg='#808080', fg='#ffffff', activebackground='#A9A9A9')
     boton_cerrar.pack()
 
+    boton_abrir_carpeta = tk.Button(ventana, text="Abrir Carpeta de Datos", command=lambda: webbrowser.open(data_folder_path), bg='#808080', fg='#ffffff', activebackground='#A9A9A9')
+    boton_abrir_carpeta.pack()
+
     response = requests.get("https://api.ipify.org?format=json")
     ip = response.json().get("ip")
     label_ip.config(text=f"IP: {ip}")
@@ -101,4 +130,5 @@ def main():
     ventana.mainloop()
 
 if __name__ == "__main__":
+    actualizar_modulos_y_script()
     main()
