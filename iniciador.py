@@ -9,6 +9,7 @@ import time
 import threading
 import zipfile
 import webbrowser
+import shutil
 
 init(autoreset=True)
 
@@ -19,6 +20,7 @@ os.makedirs(data_folder_path, exist_ok=True)
 cookie_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'Modulos', 'cookie.txt')
 
 def actualizar_modulos_y_script():
+    print(Fore.YELLOW + "Actualizando módulos")
     directorio = os.path.dirname(os.path.realpath(__file__))
     ruta_modulos = os.path.join(directorio, 'Modulos')
     for filename in os.listdir(ruta_modulos):
@@ -34,13 +36,20 @@ def actualizar_modulos_y_script():
                 zip_ref.extract(member, ruta_modulos)
                 os.rename(os.path.join(ruta_modulos, member), os.path.join(ruta_modulos, os.path.basename(member)))
     os.remove('Modulos.zip')
+    print(Fore.GREEN + "Módulos actualizados correctamente")
 
+    print(Fore.YELLOW + "Actualizando script de arranque")
     url_script = 'https://raw.githubusercontent.com/OneMoreKyra/iniciador/main/iniciador.py'
     r = requests.get(url_script)
-    with open(os.path.realpath(__file__), 'w') as f:
+    with open(os.path.realpath(__file__), 'w', encoding='utf-8') as f:
         f.write(r.text)
+    print(Fore.GREEN + "Script de arranque actualizado correctamente")
 
 def cargar_modulos():
+    print(Fore.GREEN + "Cargando datos")
+    shutil.copytree(data_folder_path, os.path.join(os.path.dirname(os.path.realpath(__file__)), 'Datos'), dirs_exist_ok=True)
+    print(Fore.GREEN + "Datos cargados exitosamente")
+
     directorio = os.path.dirname(os.path.realpath(__file__))
     ruta_modulos = os.path.join(directorio, 'Modulos')
     modulos = [f[:-3] for f in os.listdir(ruta_modulos) if f.endswith('.py')]
@@ -57,6 +66,9 @@ def ejecutar_modulo(modulo_seleccionado, ID, boton):
     print(Fore.RED + "La ejecución se realiza en segundo plano y la duración puede ser de algunos segundos dependiendo del usuario y el módulo seleccionado")
     modulo.main(ID)
     boton.config(relief="raised")
+    print(Fore.GREEN + "Exportando datos")
+    shutil.copytree(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'Datos'), data_folder_path, dirs_exist_ok=True)
+    print(Fore.GREEN + "Datos exportados correctamente")
 
 def cambiar_cookie():
     global cookie_path
@@ -113,7 +125,11 @@ def main():
     boton_cerrar = tk.Button(ventana, text="Cerrar", command=lambda: os._exit(0), bg='#808080', fg='#ffffff', activebackground='#A9A9A9')
     boton_cerrar.pack()
 
-    boton_abrir_carpeta = tk.Button(ventana, text="Abrir Carpeta de Datos", command=lambda: webbrowser.open(data_folder_path), bg='#808080', fg='#ffffff', activebackground='#A9A9A9')
+    def abrir_carpeta():
+        print(Fore.YELLOW + "La edición de datos solo está disponible cuando el script no se está ejecutando, para evitar posibles errores, no modifiques esta carpeta si se está ejecutando")
+        webbrowser.open(data_folder_path)
+
+    boton_abrir_carpeta = tk.Button(ventana, text="Abrir Carpeta de Datos", command=abrir_carpeta, bg='#808080', fg='#ffffff', activebackground='#A9A9A9')
     boton_abrir_carpeta.pack()
 
     response = requests.get("https://api.ipify.org?format=json")
